@@ -78,7 +78,7 @@ static const simd::float2 kQuadTexCoords[kCntQuadTexCoords] =
         
         m_VertexBuffer = [device newBufferWithBytes:kQuadVertices
                                              length:kSzQuadVertices
-                                            options:MTLResourceOptionCPUCacheModeDefault];
+                                            options:MTLResourceStorageModeShared];
         
         if(!m_VertexBuffer)
         {
@@ -90,7 +90,7 @@ static const simd::float2 kQuadTexCoords[kCntQuadTexCoords] =
         
         m_TexCoordBuffer = [device newBufferWithBytes:kQuadTexCoords
                                                length:kSzQuadTexCoords
-                                              options:MTLResourceOptionCPUCacheModeDefault];
+                                              options:MTLResourceStorageModeShared];
         
         if(!m_TexCoordBuffer)
         {
@@ -117,50 +117,6 @@ static const simd::float2 kQuadTexCoords[kCntQuadTexCoords] =
 
 - (void) setBounds:(CGRect)bounds
 {
-    _bounds = bounds;
-    _aspect = std::abs(_bounds.size.width / _bounds.size.height);
-    
-    float         aspect = 1.0f/_aspect;
-    simd::float2  scale  = 0.0f;
-    
-    scale.x = aspect * _size.width / _bounds.size.width;
-    scale.y = _size.height / _bounds.size.height;
-    
-    // Did the scaling factor change
-    BOOL bNewScale = (scale.x != m_Scale.x) || (scale.y != m_Scale.y);
-    
-    // Set the (x,y) bounds of the quad
-    if(bNewScale)
-    {
-        // Update the scaling factor
-        m_Scale = scale;
-        
-        // Update the vertex buffer with the quad bounds
-        simd::float4 *pVertices = (simd::float4 *)[m_VertexBuffer contents];
-        
-        if(pVertices != NULL)
-        {
-            // First triangle
-            pVertices[0].x = -m_Scale.x;
-            pVertices[0].y = -m_Scale.y;
-            
-            pVertices[1].x =  m_Scale.x;
-            pVertices[1].y = -m_Scale.y;
-            
-            pVertices[2].x = -m_Scale.x;
-            pVertices[2].y =  m_Scale.y;
-            
-            // Second triangle
-            pVertices[3].x =  m_Scale.x;
-            pVertices[3].y = -m_Scale.y;
-            
-            pVertices[4].x = -m_Scale.x;
-            pVertices[4].y =  m_Scale.y;
-            
-            pVertices[5].x =  m_Scale.x;
-            pVertices[5].y =  m_Scale.y;
-        } // if
-    } // if
 } // setBounds
 
 - (void) encode:(id <MTLRenderCommandEncoder>)renderEncoder

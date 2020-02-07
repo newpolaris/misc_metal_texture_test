@@ -27,7 +27,7 @@ vertex VertexInOut texturedQuadVertex(constant float4         *pPosition   [[ bu
 {
     VertexInOut outVertices;
     
-    outVertices.m_Position = *pMVP * pPosition[vid];
+    outVertices.m_Position = pPosition[vid];
     outVertices.m_TexCoord = pTexCoords[vid];
     
     return outVertices;
@@ -36,7 +36,7 @@ vertex VertexInOut texturedQuadVertex(constant float4         *pPosition   [[ bu
 fragment half4 texturedQuadFragment(VertexInOut     inFrag    [[ stage_in ]],
                                     texture2d<half>  tex2D     [[ texture(0) ]])
 {
-    constexpr sampler quad_sampler;
+    constexpr sampler quad_sampler(mag_filter::nearest, min_filter::nearest);
     half4 color = tex2D.sample(quad_sampler, inFrag.m_TexCoord);
     
     return color;
