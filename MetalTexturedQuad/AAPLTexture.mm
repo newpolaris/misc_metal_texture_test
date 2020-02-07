@@ -130,8 +130,48 @@
         return NO;
     } // if
 
+    pTexDesc.storageMode = MTLStorageModeShared;
+    id<MTLTexture> stagingTexture = [device newTextureWithDescriptor:pTexDesc];
+    
+    MTLTextureDescriptor *pTexDesc2 = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                         width:width
+                                                                                        height:height
+                                                                                     mipmapped:NO];
+    pTexDesc2.usage = MTLTextureUsageShaderRead;
+    pTexDesc2.storageMode = MTLStorageModePrivate;
+    _texture = [device newTextureWithDescriptor:pTexDesc2];
+    
+    const void *pPixels = CGBitmapContextGetData(pContext);
+    
+    if(pPixels != NULL)
+    {
+        MTLRegion region = MTLRegionMake2D(0, 0, width, height);
+        
+        [stagingTexture replaceRegion:region
+                          mipmapLevel:0
+                            withBytes:pPixels
+                          bytesPerRow:rowBytes];
+    } // if
+    
+    id <MTLCommandQueue> commandQueue = [device newCommandQueue];
+    id<MTLCommandBuffer> blitCommandBuffer = [commandQueue commandBuffer];
+    id<MTLBlitCommandEncoder> blitCommandEncoder = [blitCommandBuffer blitCommandEncoder];
+
+    [blitCommandEncoder copyFromTexture:stagingTexture
+                            sourceSlice:0
+                            sourceLevel:0
+                           sourceOrigin:MTLOriginMake(0, 0, 0)
+                             sourceSize:MTLSizeMake(width, height, 1)
+                              toTexture:_texture
+                       destinationSlice:0
+                       destinationLevel:0
+                      destinationOrigin:MTLOriginMake(0, 0, 0)];
+    
+    [blitCommandEncoder endEncoding];
+    [blitCommandBuffer commit];
+    [blitCommandBuffer waitUntilCompleted];
+    
     _target  = pTexDesc.textureType;
-    _texture = [device newTextureWithDescriptor:pTexDesc];
     
     if(!_texture)
     {
@@ -140,17 +180,7 @@
         return NO;
     } // if
     
-    const void *pPixels = CGBitmapContextGetData(pContext);
     
-    if(pPixels != NULL)
-    {
-        MTLRegion region = MTLRegionMake2D(0, 0, width, height);
-        
-        [_texture replaceRegion:region
-                    mipmapLevel:0
-                      withBytes:pPixels
-                    bytesPerRow:rowBytes];
-    } // if
     
     CGContextRelease(pContext);
     
