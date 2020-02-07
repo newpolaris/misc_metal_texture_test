@@ -147,6 +147,7 @@
             
             desc.textureType = (_sampleCount > 1) ? MTLTextureType2DMultisample : MTLTextureType2D;
             desc.sampleCount = _sampleCount;
+            desc.usage = MTLTextureUsageRenderTarget;
             
             _depthTex = [_device newTextureWithDescriptor: desc];
             
